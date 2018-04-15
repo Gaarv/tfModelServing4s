@@ -13,6 +13,8 @@ object Example1 {
 
   def main(args: Array[String]): Unit = {
 
+    import FloatMapper._
+
     val serving = new TFModelServing[Float]
 
     val progr = for {
