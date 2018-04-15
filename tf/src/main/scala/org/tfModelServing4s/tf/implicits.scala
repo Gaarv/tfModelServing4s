@@ -11,48 +11,53 @@ object implicits {
 
   object StringMapper {
 
-    implicit val dim1Encoder = new TensorEncoder[String, Tensor, Array[Byte]] {
+    private type T = String
 
-      def toTensor(data: Array[Byte], shape: List[Long]): Tensor[String] = {
-        val t = Tensor.create(data)
-        t.asInstanceOf[Tensor[String]]
-      }
+    implicit val dim1Encoder = new TensorEncoder[T, Tensor, Array[Byte]] {
+
+      def toTensor(data: Array[Byte], shape: List[Long]): Tensor[T] =
+        Tensor.create(data, classOf[T])
     }
   }
 
   object FloatMapper {
-    implicit val dim1ArrayEncoder = new TensorEncoder[Float, Tensor, Array[Float]] {
 
-      def toTensor(data: Array[Float], shape: List[Long]): Tensor[Float] = {
-        val t = Tensor.create(shape.toArray, FloatBuffer.wrap(data))
-        t.asInstanceOf[Tensor[Float]]
+    private type T = Float
+
+    implicit val dim1ArrayEncoder = new TensorEncoder[T, Tensor, Array[T]] {
+
+      def toTensor(data: Array[T], shape: List[Long]): Tensor[T] = {
+        val t = Tensor.create(shape.toArray, classOf[T])
+        t.writeTo(FloatBuffer.wrap(data))
+        t
       }
     }
 
-    implicit val dim1ArrayDecoder = new TensorDecoder[Float, Tensor, Array[Float]] {
+    implicit val dim1ArrayDecoder = new TensorDecoder[T, Tensor, Array[T]] {
 
-      def fromTensor(tensor: Tensor[Float]): Array[Float] = {
+      def fromTensor(tensor: Tensor[T]): Array[T] = {
         val shape = tensor.shape().toList.map(_.toInt)
-        val array = Array.ofDim[Float](shape.head)
+        val array = Array.ofDim[T](shape.head)
         tensor.copyTo(array)
 
         array
       }
     }
 
-    implicit val dim2ArrayEncoder = new TensorEncoder[Array[Float], Tensor, Array[Array[Float]]] {
+    implicit val dim2ArrayEncoder = new TensorEncoder[Array[T], Tensor, Array[Array[T]]] {
 
-      def toTensor(data: Array[Array[Float]], shape: List[Long]): Tensor[Array[Float]] = {
-        val t = Tensor.create(shape.toArray, FloatBuffer.wrap(data.flatten))
-        t.asInstanceOf[Tensor[Array[Float]]]
+      def toTensor(data: Array[Array[T]], shape: List[Long]): Tensor[Array[T]] = {
+        val t = Tensor.create(shape.toArray, classOf[Array[T]])
+        t.writeTo(FloatBuffer.wrap(data.flatten))
+        t
       }
     }
 
-    implicit val dim2ArrayDecoder = new TensorDecoder[Float, Tensor, Array[Array[Float]]] {
+    implicit val dim2ArrayDecoder = new TensorDecoder[T, Tensor, Array[Array[T]]] {
 
-      def fromTensor(tensor: Tensor[Float]): Array[Array[Float]] = {
+      def fromTensor(tensor: Tensor[T]): Array[Array[T]] = {
         val shape = tensor.shape().toList.map(_.toInt)
-        val array = Array.ofDim[Float](shape.head, shape(1))
+        val array = Array.ofDim[T](shape.head, shape(1))
         tensor.copyTo(array)
 
         array
@@ -61,29 +66,32 @@ object implicits {
   }
 
   object ByteMapper {
-    implicit val byte1DimArrayEncoder = new TensorEncoder[Byte, Tensor, Array[Byte]] {
 
-      def toTensor(data: Array[Byte], shape: List[Long]): Tensor[Byte] = {
-        val t = Tensor.create(shape.toArray, classOf[Byte])
+    private type T = Byte
+
+    implicit val dim1ArrayEncoder = new TensorEncoder[T, Tensor, Array[T]] {
+
+      def toTensor(data: Array[T], shape: List[Long]): Tensor[T] = {
+        val t = Tensor.create(shape.toArray, classOf[T])
         t.writeTo(ByteBuffer.wrap(data))
         t
       }
     }
 
-    //  implicit val byte1DimArrayDecoder = new TensorDecoder[Byte, Tensor, Array[Byte]] {
+    //  implicit val dim1ArrayDecoder = new TensorDecoder[T, Tensor, Array[T]] {
     //
-    //    def fromTensor(tensor: Tensor[Byte]) : Array[Byte] = {
+    //    def fromTensor(tensor: Tensor[T]) : Array[T] = {
     //      val shape = tensor.shape().toList.map(_.toInt)
-    //      val array = Array.ofDim[Byte](shape.head)
+    //      val array = Array.ofDim[T](shape.head)
     //      tensor.copyTo(array)
     //
     //      array
     //    }
     //  }
 
-    implicit val byte2DimArrayDecoder = new TensorDecoder[Byte, Tensor, Array[Array[Float]]] {
+    implicit val dim2ArrayDecoder = new TensorDecoder[T, Tensor, Array[Array[Float]]] {
 
-      def fromTensor(tensor: Tensor[Byte]): Array[Array[Float]] = {
+      def fromTensor(tensor: Tensor[T]): Array[Array[Float]] = {
         val shape = tensor.shape().toList.map(_.toInt)
         val array = Array.ofDim[Float](shape.head, shape(1))
         tensor.copyTo(array)

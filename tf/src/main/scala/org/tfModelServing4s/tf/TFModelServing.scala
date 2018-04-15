@@ -15,9 +15,7 @@ import scala.language.higherKinds
   */
 class TFModelServing[T] extends ModelServing[T, TFModel, Tensor, Try] {
 
-  //type T
-//  type TModel = TFModel
-  type TTensor = Tensor[T]
+  private type TTensor = Tensor[T]
 
   private def pathForSource(source: ModelSource): String = source match {
     case FileModelSource(path) => path
@@ -65,10 +63,8 @@ class TFModelServing[T] extends ModelServing[T, TFModel, Tensor, Try] {
       r.feed(tensorMeta.opName, tensor)
     }
 
-    val r: java.util.List[Tensor[_]] = runner.fetch(output.opName).run()
-    val l: List[TTensor] = r.asScala.toList.map(_.asInstanceOf[TTensor])
-
-    l
+    // #todo is there a way around this cast?
+    runner.fetch(output.opName).run().asScala.toList.map(_.asInstanceOf[TTensor])
   }
 
   def eval[TRepr](model: TFModel, output: TensorMetadata, feed: Map[TensorMetadata, TTensor])
