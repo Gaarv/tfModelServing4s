@@ -3,32 +3,30 @@ package tf
 
 import java.nio.{ByteBuffer, FloatBuffer}
 
-import dsl._
-import org.tensorflow.{DataType, Tensor}
+import org.tensorflow.Tensor
+import org.tfModelServing4s.dsl._
 
 object implicits {
 
-  implicit val stringEncoder = new TensorEncoder[Tensor, Array[Byte]] {
+  implicit val stringEncoder = new TensorEncoder[String, Tensor, Array[Byte]] {
 
-    def toTensor(data: Array[Byte], shape: List[Long]) =
-      Tensor.create(data)
+    def toTensor(data: Array[Byte], shape: List[Long]) : Tensor[String] = {
+      val t  = Tensor.create(data)
+      t.asInstanceOf[Tensor[String]]
+    }
   }
 
-  implicit val float1DimArrayEncoder = new TensorEncoder[Tensor, Array[Float]] {
+  implicit val float1DimArrayEncoder = new TensorEncoder[Float, Tensor, Array[Float]] {
 
-    def toTensor(data: Array[Float], shape: List[Long]) =
-      Tensor.create(shape.toArray, FloatBuffer.wrap(data))
+    def toTensor(data: Array[Float], shape: List[Long]) : Tensor[Float] = {
+        val t = Tensor.create(shape.toArray, FloatBuffer.wrap(data))
+        t.asInstanceOf[Tensor[Float]]
+      }
   }
 
-  implicit val float2DimArrayEncoder = new TensorEncoder[Tensor, Array[Array[Float]]] {
+  implicit val float1DimArrayDecoder = new TensorDecoder[Float, Tensor, Array[Float]] {
 
-    def toTensor(data: Array[Array[Float]], shape: List[Long]) =
-      Tensor.create(shape.toArray, FloatBuffer.wrap(data.flatten))
-  }
-
-  implicit val float1DimArrayDecoder = new TensorDecoder[Tensor, Array[Float]] {
-
-    def fromTensor(tensor: Tensor) = {
+    def fromTensor(tensor: Tensor[Float]) : Array[Float] = {
       val shape = tensor.shape().toList.map(_.toInt)
       val array = Array.ofDim[Float](shape.head)
       tensor.copyTo(array)
@@ -37,9 +35,29 @@ object implicits {
     }
   }
 
-  implicit val float2DimArrayDecoder = new TensorDecoder[Tensor, Array[Array[Float]]] {
+  implicit val byte1DimArrayEncoder = new TensorEncoder[Byte, Tensor, Array[Byte]] {
 
-    def fromTensor(tensor: Tensor) = {
+    def toTensor(data: Array[Byte], shape: List[Long]) : Tensor[Byte] = {
+        val t = Tensor.create(shape.toArray, classOf[Byte])
+        t.writeTo(ByteBuffer.wrap(data))
+        t
+      }
+  }
+
+//  implicit val byte1DimArrayDecoder = new TensorDecoder[Byte, Tensor, Array[Byte]] {
+//
+//    def fromTensor(tensor: Tensor[Byte]) : Array[Byte] = {
+//      val shape = tensor.shape().toList.map(_.toInt)
+//      val array = Array.ofDim[Byte](shape.head)
+//      tensor.copyTo(array)
+//
+//      array
+//    }
+//  }
+
+  implicit val byte2DimArrayDecoder = new TensorDecoder[Byte, Tensor, Array[Array[Float]]] {
+
+    def fromTensor(tensor: Tensor[Byte]) : Array[Array[Float]] = {
       val shape = tensor.shape().toList.map(_.toInt)
       val array = Array.ofDim[Float](shape.head, shape(1))
       tensor.copyTo(array)
@@ -48,9 +66,28 @@ object implicits {
     }
   }
 
-  implicit val closeableTensor = new Closeable[Tensor] {
+  implicit val float2DimArrayEncoder = new TensorEncoder[Array[Float], Tensor, Array[Array[Float]]] {
 
-    def close(resource: Tensor): Unit =  {
+    def toTensor(data: Array[Array[Float]], shape: List[Long]) : Tensor[Array[Float]] = {
+      val t = Tensor.create(shape.toArray, FloatBuffer.wrap(data.flatten))
+      t.asInstanceOf[Tensor[Array[Float]]]
+    }
+  }
+
+  implicit val float2DimArrayDecoder = new TensorDecoder[Float, Tensor, Array[Array[Float]]] {
+
+    def fromTensor(tensor: Tensor[Float]) : Array[Array[Float]] = {
+      val shape = tensor.shape().toList.map(_.toInt)
+      val array = Array.ofDim[Float](shape.head, shape(1))
+      tensor.copyTo(array)
+
+      array
+    }
+  }
+
+  implicit def closeableTensor[T] = new Closeable[Tensor[T]] {
+
+    def close(resource: Tensor[T]): Unit =  {
 
       println("releasing TF tensor")
       resource.close()

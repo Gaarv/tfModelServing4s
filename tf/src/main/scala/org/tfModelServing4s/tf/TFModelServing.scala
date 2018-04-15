@@ -3,23 +3,27 @@ package tf
 
 import org.tensorflow.{SavedModelBundle, Tensor}
 import org.tensorflow.framework.{MetaGraphDef, SignatureDef, TensorInfo}
+
 import scala.collection.JavaConverters._
 import scala.util.Try
 import dsl._
 
+import scala.language.higherKinds
+
 /**
   * Model serving algebra implementation for TensorFlow saved model.
   */
-class TFModelServing extends ModelServing[Try] {
+class TFModelServing[T] extends ModelServing[T, TFModel, Tensor, Try] {
 
-  type TModel = TFModel
-  type TTensor = Tensor
+  //type T
+//  type TModel = TFModel
+  type TTensor = Tensor[T]
 
   private def pathForSource(source: ModelSource): String = source match {
     case FileModelSource(path) => path
   }
 
-  def load(source: ModelSource, tag: String): Try[TModel] = Try {
+  def load(source: ModelSource, tag: String): Try[TFModel] = Try {
     val bundle = SavedModelBundle.load(pathForSource(source), tag)
     val graphDef = MetaGraphDef.parseFrom(bundle.metaGraphDef())
 
@@ -50,22 +54,25 @@ class TFModelServing extends ModelServing[Try] {
     SignatureMetadata(signatureDef.getMethodName, inputs = inputs, outputs = outputs)
   }
 
-  def metadata(model: TModel): Try[ModelMetadata] = Try {
+  def metadata(model: TFModel): Try[ModelMetadata] = Try {
     val signatures = model.graphDef.getSignatureDefMap.asScala.mapValues(parseSignatureDef).toMap
 
     ModelMetadata(signatures)
   }
 
-  private def run(model: TModel, output: TensorMetadata, feed: Map[TensorMetadata, TTensor]): Try[List[TTensor]] = Try {
+  private def run(model: TFModel, output: TensorMetadata, feed: Map[TensorMetadata, TTensor]): Try[List[TTensor]] = Try {
     val runner = feed.foldLeft(model.bundle.session.runner) { case (r, (tensorMeta, tensor)) =>
       r.feed(tensorMeta.opName, tensor)
     }
 
-    runner.fetch(output.opName).run().asScala.toList
+    val r: java.util.List[Tensor[_]] = runner.fetch(output.opName).run()
+    val l: List[TTensor] = r.asScala.toList.map(_.asInstanceOf[TTensor])
+
+    l
   }
 
-  def eval[TRepr](model: TModel, output: TensorMetadata, feed: Map[TensorMetadata, TTensor])
-                 (implicit D: TensorDecoder[Tensor, TRepr], C: Closeable[TTensor]): Try[TRepr] = {
+  def eval[TRepr](model: TFModel, output: TensorMetadata, feed: Map[TensorMetadata, TTensor])
+                 (implicit D: TensorDecoder[T, Tensor, TRepr], C: Closeable[TTensor]): Try[TRepr] = {
     val tensorT = for {
       ts <- run(model, output, feed)
       t <- Try(ts.head)
@@ -82,7 +89,7 @@ class TFModelServing extends ModelServing[Try] {
     C.close(resource)
   }
 
-  def tensor[TRepr](data: TRepr, shape: List[Long])(implicit E: TensorEncoder[TTensor, TRepr]): Try[TTensor] = Try {
+  def tensor[TRepr](data: TRepr, shape: List[Long])(implicit E: TensorEncoder[T, Tensor, TRepr]): Try[TTensor] = Try {
     E.toTensor(data, shape)
   }
 
