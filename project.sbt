@@ -1,4 +1,4 @@
-scalaVersion in Global := "2.12.4"
+scalaVersion in Global := "2.11.12"
 
 lazy val dsl_ = Project(id = "dsl", base = file("dsl"))
 lazy val tf = project.dependsOn(dsl_ % "test->test;compile->compile", utils % "test->test;compile->compile")
