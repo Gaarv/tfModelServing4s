@@ -7,18 +7,8 @@ import scala.language.higherKinds
   * Abstract model serving algebra.
   * Defines a set of operations on a pre-built model that is stored
   * somewhere on an external storage.
-  *
-  * @tparam F Type of the effect used by this algebra.
   */
 trait ModelServing[T, TModel, TTensor[_], F[_]] {
-
-  //type T
-
-//  // Model type.
-//  type TModel
-//
-//  // Tensor type.
-//  type TTensor //[T]
 
   /**
     * Loads a model from an external source.

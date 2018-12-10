@@ -6,6 +6,7 @@ import scala.language.higherKinds
 /**
   * Converts a tensor to its representation in the form of a data structure.
  *
+  * @tparam T Type of tensor.
   * @tparam Tensor Type of tensor to convert from.
   * @tparam TRepr Type of the representation to convert to e.g. Array, List etc.
   */

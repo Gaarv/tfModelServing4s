@@ -6,6 +6,7 @@ import scala.language.higherKinds
 /**
   * Builds a tensor from its representation in the form of a data structure.
   *
+  * @tparam T Type of tensor.
   * @tparam Tensor Type of the tensor to build.
   * @tparam TRepr Type of the representation to build tensor from e.g. Array, List etc.
   */
