@@ -21,8 +21,10 @@ object Example2 {
 
   def main(args: Array[String]): Unit = {
 
+    import ByteMapper._
+
     val imagePath = args(0)
-    val serving = new TFModelServing
+    val serving = new TFModelServing[Byte]
 
     val progr = for {
       _ <- use(serving.load(FileModelSource("/tmp/dogs_1"), tag = "serve")) { model =>

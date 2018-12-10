@@ -1,13 +1,16 @@
 package org.tfModelServing4s.dsl
 
+import scala.language.higherKinds
+
+
 /**
   * Builds a tensor from its representation in the form of a data structure.
   *
-  * @tparam TTensor Type of the tensor to build.
+  * @tparam Tensor Type of the tensor to build.
   * @tparam TRepr Type of the representation to build tensor from e.g. Array, List etc.
   */
-trait TensorEncoder[TTensor, TRepr] {
+trait TensorEncoder[T, Tensor[_], TRepr] {
 
-  def toTensor(data: TRepr, shape: List[Long]): TTensor
+  def toTensor(data: TRepr, shape: List[Long]): Tensor[T]
 
 }

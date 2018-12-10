@@ -2,8 +2,8 @@ import sbt._
 
 object dependencies {
 
-  def _test     (module: ModuleID): ModuleID = module % "test"
-  def _provided (module: ModuleID): ModuleID = module % "provided"
+  def _test(module: ModuleID): ModuleID = module % "test"
+  def _provided(module: ModuleID): ModuleID = module % "provided"
 
   object Versions {
     val tensorFlow = "1.12.0"
@@ -13,8 +13,8 @@ object dependencies {
 
     val group = "org.tensorflow"
 
-    val core      = group % "tensorflow" % Versions.tensorFlow
-    val proto     = group % "proto"      % Versions.tensorFlow
+    val core = group % "tensorflow" % Versions.tensorFlow
+    val proto = group % "proto" % Versions.tensorFlow
 
   }
 

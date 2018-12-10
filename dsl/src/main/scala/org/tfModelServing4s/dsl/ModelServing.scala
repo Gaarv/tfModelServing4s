@@ -1,5 +1,8 @@
 package org.tfModelServing4s.dsl
 
+import scala.language.higherKinds
+
+
 /**
   * Abstract model serving algebra.
   * Defines a set of operations on a pre-built model that is stored
@@ -7,13 +10,15 @@ package org.tfModelServing4s.dsl
   *
   * @tparam F Type of the effect used by this algebra.
   */
-trait ModelServing[F[_]] {
+trait ModelServing[T, TModel, TTensor[_], F[_]] {
 
-  // Model type.
-  type TModel
+  //type T
 
-  // Tensor type.
-  type TTensor
+//  // Model type.
+//  type TModel
+//
+//  // Tensor type.
+//  type TTensor //[T]
 
   /**
     * Loads a model from an external source.
@@ -43,7 +48,7 @@ trait ModelServing[F[_]] {
     * @tparam TRepr Type of the data structure to build tensor from.
     * @return A tensor wrapped into an effect.
     */
-  def tensor[TRepr](data: TRepr, shape: List[Long])(implicit E: TensorEncoder[TTensor, TRepr]): F[TTensor]
+  def tensor[TRepr](data: TRepr, shape: List[Long])(implicit E: TensorEncoder[T, TTensor, TRepr]): F[TTensor[T]]
 
   /**
     * Evaluates a tensor value by feeding a set of input tensors as defined by a signature
@@ -57,8 +62,8 @@ trait ModelServing[F[_]] {
     * @return A data structure representing an output tensor calculated by feeding a set
     *         of inputs into the model.
     */
-  def eval[TRepr](model: TModel, output: TensorMetadata, feed: Map[TensorMetadata, TTensor])
-                 (implicit D: TensorDecoder[TTensor, TRepr], C: Closeable[TTensor]): F[TRepr]
+  def eval[TRepr](model: TModel, output: TensorMetadata, feed: Map[TensorMetadata, TTensor[T]])
+                 (implicit D: TensorDecoder[T, TTensor, TRepr], C: Closeable[TTensor[T]]): F[TRepr]
 
   /**
     * Closes a resource and releases all related resources.

@@ -13,7 +13,9 @@ object Example1 {
 
   def main(args: Array[String]): Unit = {
 
-    val serving = new TFModelServing
+    import FloatMapper._
+
+    val serving = new TFModelServing[Float]
 
     val progr = for {
       _ <- use(serving.load(FileModelSource("/tmp/saved_model_1"), tag = "serve")) { model =>

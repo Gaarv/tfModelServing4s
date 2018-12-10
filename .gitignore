@@ -5,7 +5,10 @@ project/target
 target
 lib_managed
 src_managed
-project/boot
+project/.sbtboot
+project/.boot/
+project/.ivy/
+
 tmp
 .history
 dist
