@@ -1,3 +1,5 @@
+[![CircleCI](https://circleci.com/gh/Gaarv/tfModelServing4s.svg?style=svg)](https://circleci.com/gh/Gaarv/tfModelServing4s)
+
 ## tfModelServing4s
 
 <p align="center">
